@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse - Enterprise Data Intelligence & Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #030712;
+            --text-color: #f9fafb;
+            --text-muted: #9ca3af;
+            --primary: #6366f1;
+            --primary-rgb: 99, 102, 241;
+            --secondary: #0ea5e9;
+            --secondary-rgb: 14, 165, 233;
+            --accent: #10b981;
+            --accent-rgb: 16, 185, 129;
+            --card-bg: rgba(17, 24, 39, 0.45);
+            --border-glow: rgba(255, 255, 255, 0.06);
+            --gradient-accent: linear-gradient(135deg, #6366f1 0%, #0ea5e9 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 3D Grid & Floating Blobs Background */
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-position: center center;
+            mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 40%, transparent 100%);
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: drift 25s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--primary) 0%, rgba(var(--primary-rgb), 0) 70%);
+            top: -10%;
+            left: -5%;
+            animation-duration: 20s;
+        }
+
+        .blob-2 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--secondary) 0%, rgba(var(--secondary-rgb), 0) 70%);
+            bottom: -10%;
+            right: -5%;
+            animation-duration: 28s;
+        }
+
+        .blob-3 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(217, 70, 239, 0.35) 0%, rgba(217, 70, 239, 0) 70%);
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-duration: 22s;
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            50% {
+                transform: translate(60px, -50px) scale(1.1);
+            }
+            100% {
+                transform: translate(-40px, 40px) scale(0.9);
+            }
+        }
+
+        /* Nav Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(3, 7, 18, 0.5);
+            border-bottom: 1px solid var(--border-glow);
+            z-index: 100;
+        }
+
+        .header-logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .header-logo i {
+            color: var(--primary);
+            background: rgba(var(--primary-rgb), 0.15);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid rgba(var(--primary-rgb), 0.3);
+            box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+        }
+
+        /* Container */
+        .container {
+            text-align: center;
+            z-index: 10;
+            max-width: 1100px;
+            padding: 120px 24px 60px 24px;
+            position: relative;
+        }
+
+        /* Hero Badge */
+        .promo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 16px;
+            border-radius: 100px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(8px);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        .promo-badge span.spark {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .promo-badge span.version {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Main Heading */
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.05;
+            letter-spacing: -2.5px;
+            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        p.subtitle {
+            font-size: 19px;
+            color: var(--text-muted);
+            margin-bottom: 50px;
+            line-height: 1.6;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Interactive Dashboard Cards Layout */
+        .cards-container {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            animation: slideUp 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Premium Glass Card */
+        .action-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 28px;
+            padding: 48px 40px;
+            width: 440px;
+            text-align: left;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.4),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.01) 100%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .action-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(99, 102, 241, 0.25);
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                0 0 40px rgba(var(--primary-rgb), 0.15),
+                inset 0 1px 2px rgba(255, 255, 255, 0.1);
+        }
+
+        .action-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Custom Glowing Card Icon */
+        .action-card .icon-wrapper {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-card .icon-glow {
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            filter: blur(12px);
+            opacity: 0.3;
+            transition: opacity 0.5s;
+        }
+
+        .action-card:hover .icon-glow {
+            opacity: 0.7;
+        }
+
+        .action-card .icon {
+            position: relative;
+            font-size: 28px;
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s;
+        }
+
+        .action-card:hover .icon {
+            transform: scale(1.05);
+        }
+
+        /* Color Variants */
+        .card-blue .icon-glow { background: var(--primary); }
+        .card-blue .icon { color: #818cf8; }
+        .card-blue:hover .icon {
+            background: rgba(var(--primary-rgb), 0.15);
+            border-color: rgba(var(--primary-rgb), 0.4);
+            color: #a5b4fc;
+        }
+
+        .card-green .icon-glow { background: var(--accent); }
+        .card-green .icon { color: #34d399; }
+        .card-green:hover .icon {
+            background: rgba(var(--accent-rgb), 0.15);
+            border-color: rgba(var(--accent-rgb), 0.4);
+            color: #6ee7b7;
+        }
+
+        .action-card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: -0.5px;
+        }
+
+        .action-card p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 36px;
+        }
+
+        /* Premium Buttons */
+        .btn-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .btn-wrapper i {
+            transition: transform 0.3s;
+        }
+
+        .action-card:hover .btn-wrapper {
+            background: #fff;
+            color: #030712;
+            border-color: #fff;
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        .action-card:hover .btn-wrapper i {
+            transform: translateX(5px);
+        }
+
+        /* Floating UI Preview Widgets */
+        .floating-widget {
+            position: absolute;
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            z-index: 5;
+            animation: float 6s infinite alternate ease-in-out;
+        }
+
+        .widget-1 {
+            top: 25%;
+            left: 2%;
+            width: 170px;
+            animation-delay: 0s;
+        }
+
+        .widget-2 {
+            bottom: 25%;
+            right: 2%;
+            width: 190px;
+            animation-delay: 1.5s;
+        }
+
+        .widget-header {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .widget-header .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .widget-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .widget-metric .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .widget-metric .value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .widget-metric .value i {
+            color: var(--accent);
+            font-size: 13px;
+            margin-left: 4px;
+        }
+
+        .sparkline {
+            margin-top: 10px;
+            height: 25px;
+            width: 100%;
+            stroke-dasharray: 100;
+            animation: draw 2s ease-out forwards;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            h1 {
+                font-size: 52px;
+            }
+            .cards-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .action-card {
+                width: 100%;
+                max-width: 480px;
+            }
+            .floating-widget {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-bg"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <header>
+        <div class="header-logo">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Pulse</span>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">Fixed Dashboard</a>
+            <a href="/upload">Dynamic Analyzer</a>
+        </div>
+    </header>
+
+    <!-- Floating visual elements -->
+    <div class="floating-widget widget-1">
+        <div class="widget-header">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <div class="widget-metric">
+            <span class="label">Monthly Sales</span>
+            <span class="value">₹12.8L <i class="fa-solid fa-arrow-trend-up"></i></span>
+        </div>
+        <svg class="sparkline" viewBox="0 0 100 30" fill="none">
+            <path d="M0 20 Q15 5, 30 15 T60 5 T90 25" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div>
+
+    <div class="floating-widget widget-2">
+        <div class="widget-header">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <div class="widget-metric">
+            <span class="label">Spark Job Performance</span>
+            <span class="value">0.84s <i class="fa-solid fa-bolt" style="color: #0ea5e9;"></i></span>
+        </div>
+        <svg class="sparkline" viewBox="0 0 100 30" fill="none">
+            <path d="M0 25 L20 15 L40 22 L60 8 L80 14 L100 5" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        
+        <div class="promo-badge" id="promoBadge">
+            <span class="spark">✨ Spark & AI Powered</span>
+            <span class="version">v2.5 Platform</span>
+        </div>
+
+        <h1 id="mainHeading">Enterprise Data Intelligence</h1>
+        <p class="subtitle" id="mainSubtitle">Choose between the fixed e-commerce overview or explore completely new datasets with our AI-powered dynamic analyzer.</p>
+
+        <div class="cards-container">
+            
+            <a href="/dashboard" class="action-card card-blue" id="linkFixedDashboard">
+                <div class="icon-wrapper">
+                    <div class="icon-glow"></div>
+                    <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+                <h2>Fixed Dashboard</h2>
+                <p>View the static, highly customized e-commerce dashboard. This is permanently wired to your original sales.csv dataset.</p>
+                <div class="btn-wrapper">
+                    <span>Open Dashboard</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <a href="/upload" class="action-card card-green" id="linkDynamicAnalyzer">
+                <div class="icon-wrapper">
+                    <div class="icon-glow"></div>
+                    <div class="icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                </div>
+                <h2>Dynamic Analyzer</h2>
+                <p>Upload ANY CSV file (students, employees, sales) and watch Pulse automatically generate charts, KPIs, and insights.</p>
+                <div class="btn-wrapper">
+                    <span>Upload Dataset</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+</body>
+</html>

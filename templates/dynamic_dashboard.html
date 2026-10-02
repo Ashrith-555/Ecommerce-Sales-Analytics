@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Intelligence – Pulse AI</title>
+    <meta name="description" content="Upload any dataset and get instant AI-powered analytics, charts, forecasts and insights.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ─── Dynamic-only styles ─────────────────────────────────── */
+        .insight-list { list-style: none; padding: 0; }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .insight-item:last-child { border-bottom: none; }
+
+        .insight-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; flex-shrink: 0;
+        }
+
+        .insight-content h4 {
+            font-size: 12px; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.4px;
+            margin-bottom: 3px;
+        }
+        .insight-content h2 { font-size: 18px; color: var(--text-main); margin-bottom: 2px; }
+        .insight-content p  { font-size: 12px; color: var(--text-muted); }
+
+        /* dataset tag */
+        .dataset-tag {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--primary-light); color: var(--primary);
+            font-size: 13px; font-weight: 600;
+            padding: 6px 14px; border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        /* top-items table badge */
+        .badge-rank {
+            background: var(--primary-light); color: var(--primary);
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+
+        /* data preview scrollable */
+        .data-preview { max-height: 360px; overflow: auto; margin-top: 4px; }
+        .data-preview table { min-width: 900px; }
+        .data-preview th {
+            position: sticky; top: 0;
+            background: var(--bg-card); z-index: 10;
+        }
+
+        /* shape chip */
+        .shape-chip {
+            font-size: 13px; color: var(--text-muted); margin-top: 4px;
+        }
+        .shape-chip strong { color: var(--primary); }
+
+        /* filter refresh label */
+        .filter-refresh-label {
+            font-size: 12px; color: var(--text-muted);
+            display: flex; align-items: center; gap: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-bolt"></i> <span>Pulse AI</span>
+        </div>
+        <ul>
+            <li><a href="/dashboard"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+            <li><a href="/analytics"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></a></li>
+            <li class="active"><a href="/upload"><i class="fa-solid fa-cloud-arrow-up"></i><span>Upload Data</span></a></li>
+            <li><a href="/reports"><i class="fa-solid fa-file-invoice"></i><span>Reports</span></a></li>
+                    <li><a href="/logout"><i class="fa-solid fa-right-from-bracket"></i>Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search analytics..." id="dynSearchInput">
+            </div>
+            <div class="profile">
+                <div class="notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="user-info">
+                    <img src="/static/images/user_avatar.jpg" alt="profile">
+                    <div class="details">
+                        <h4>Admin User</h4>
+                        <p>Superadmin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div style="background:#fee2e2;color:#b91c1c;padding:14px 18px;border-radius:10px;margin-bottom:20px;">
+              {% for message in messages %}{{ message }}{% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- HEADING ROW -->
+        <div class="heading">
+            <div>
+                <h1>Dynamic Intelligence</h1>
+                <div class="dataset-tag">
+                    <i class="fa-solid fa-file-csv"></i> {{ filename }}
+                </div>
+                <p class="shape-chip" style="margin-top:8px;">
+                    Dataset Profile: <strong>{{ shape }}</strong>
+                </p>
+            </div>
+            <div class="actions">
+                <!-- Dynamic filter dropdowns (auto-generated from dataset) -->
+                {% if filter_cols %}
+                <div class="dashboard-filters" id="dynFilters">
+                    {% for col_name, values in filter_cols.items() %}
+                    <div class="filter-group">
+                        <label>{{ col_name }}</label>
+                        <select id="dynFilter_{{ loop.index }}" data-filter-col="{{ col_name }}">
+                            <option value="All">All {{ col_name }}s</option>
+                            {% for v in values %}
+                            <option value="{{ v }}">{{ v }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <a href="/upload" class="btn-primary" style="text-decoration:none; white-space:nowrap;">
+                    <i class="fa-solid fa-upload"></i> Upload New Dataset
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI CARDS -->
+        <div class="cards-grid" id="dynKpiGrid">
+            {% for kpi in kpis %}
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:var(--{{kpi.color}}-light);color:var(--{{kpi.color}});">
+                    <i class="fa-solid {{ kpi.icon }}"></i>
+                </div>
+                <div class="kpi-details">
+                    <h3>{{ kpi.title }}</h3>
+                    <h2 id="{{ kpi.id }}">{{ kpi.value }}</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> Live Spark metric</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- CHART ROW 1: Trend + Top Categorical -->
+        <div class="analytics-grid">
+            {% if charts|length > 0 %}
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>{{ charts[0].title }}</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="{{ charts[0].id }}"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if charts|length > 1 %}
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>{{ charts[1].title }}</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="{{ charts[1].id }}"></canvas>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- CHART ROW 2: Pie + Segment + System Status / Forecast -->
+        <div class="analytics-grid-3">
+            {% if charts|length > 2 %}
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>{{ charts[2].title }}</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container pie-container">
+                    <canvas id="{{ charts[2].id }}"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if charts|length > 3 %}
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>{{ charts[3].title }}</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container pie-container">
+                    <canvas id="{{ charts[3].id }}"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- System Status + ML Forecast card -->
+            <div class="chart-card system-card">
+                <div class="card-header"><h2>System Status</h2></div>
+                <div class="system-status">
+                    <div class="status-item">
+                        <div class="status-icon green"><i class="fa-solid fa-check"></i></div>
+                        <div class="status-text">
+                            <h4>PySpark Engine</h4>
+                            <p>Active and processing</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-icon green"><i class="fa-solid fa-database"></i></div>
+                        <div class="status-text">
+                            <h4>Dataset Loaded</h4>
+                            <p>{{ filename }} — {{ shape }}</p>
+                        </div>
+                    </div>
+                    {% if filter_cols %}
+                    <div class="status-item">
+                        <div class="status-icon blue"><i class="fa-solid fa-sliders"></i></div>
+                        <div class="status-text">
+                            <h4>Smart Filters</h4>
+                            <p>{{ filter_cols|length }} filter column(s) detected</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if forecast %}
+                <div class="ml-prediction">
+                    <h4>ML Forecast ({{ forecast.label }})</h4>
+                    <h2>
+                        <span id="dynForecastVal">{{ forecast.value }}</span>
+                        <span id="dynForecastTrend" class="trend {{ forecast.trend_class }}">
+                            <i class="fa-solid fa-arrow-trend-{{ forecast.trend_class }}"></i>
+                            {{ forecast.trend }}
+                        </span>
+                    </h2>
+                    <p style="font-size:12px;color:var(--text-muted);margin-top:8px;display:flex;align-items:center;gap:4px;">
+                        <i class="fa-solid fa-bullseye"></i> Accuracy:
+                        <strong id="dynForecastAcc" style="color:var(--primary);">{{ forecast.accuracy }}</strong>
+                    </p>
+                </div>
+                {% else %}
+                <div class="ml-prediction">
+                    <h4>ML Forecast</h4>
+                    <p style="font-size:13px;color:var(--text-muted);">
+                        No date column detected — upload a dataset with a date/time column to enable forecasting.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TOP ITEMS TABLE -->
+        {% if top_items %}
+        <div class="table-card">
+            <div class="table-header">
+                <h2>Top Performing {{ top_items_label_col }}s by {{ top_items_value_col }}</h2>
+                <button class="btn-outline text-sm" onclick="document.getElementById('previewSection').scrollIntoView({behavior:'smooth'})">
+                    View Top 10 Records
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>{{ top_items_label_col }}</th>
+                            <th>Total {{ top_items_value_col }}</th>
+                            <th>Share</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dynTopItemsBody">
+                        {% set total_val = top_items | sum(attribute='raw') %}
+                        {% for item in top_items %}
+                        <tr>
+                            <td>
+                                <div class="badge-rank">{{ loop.index }}</div>
+                            </td>
+                            <td>
+                                <div class="product-cell">
+                                    <div class="product-icon"><i class="fa-solid fa-layer-group"></i></div>
+                                    <span>{{ item.label }}</span>
+                                </div>
+                            </td>
+                            <td class="font-medium">{{ item.value }}</td>
+                            <td>
+                                {% if total_val > 0 %}
+                                    {% set pct = ((item.raw / total_val) * 100) | round(1) %}
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <div style="flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden;">
+                                            <div style="width:{{ pct }}%;height:100%;background:var(--primary);border-radius:99px;"></div>
+                                        </div>
+                                        <span style="font-size:12px;color:var(--text-muted);min-width:36px;">{{ pct }}%</span>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- AI INSIGHTS -->
+        {% if insights %}
+        <div class="table-card">
+            <div class="table-header">
+                <h2><i class="fa-solid fa-brain" style="color:var(--primary);margin-right:8px;"></i>AI Insights</h2>
+            </div>
+            <ul class="insight-list" id="dynInsightList">
+                {% for insight in insights %}
+                <li class="insight-item">
+                    <div class="insight-icon"><i class="fa-solid {{ insight.icon }}"></i></div>
+                    <div class="insight-content">
+                        <h4>{{ insight.title }}</h4>
+                        <h2>{{ insight.value }}</h2>
+                        <p>{{ insight.desc }}</p>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- DATASET PREVIEW TABLE -->
+        <div class="table-card" id="previewSection">
+            <div class="table-header">
+                <h2>Top 10 Records
+                    {% if preview_sort_col %}
+                    <span style="font-weight:400;color:var(--text-muted);font-size:14px;"> — sorted by highest
+                        <strong style="color:var(--primary);">{{ preview_sort_col }}</strong>
+                    </span>
+                    {% endif %}
+                </h2>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    {% if preview_sort_col %}
+                    <span style="font-size:12px;background:var(--primary-light);color:var(--primary);padding:4px 12px;border-radius:20px;font-weight:600;">
+                        <i class="fa-solid fa-arrow-down-wide-short"></i> {{ preview_sort_col }}
+                    </span>
+                    {% endif %}
+                    <span class="shape-chip">{{ shape }}</span>
+                </div>
+            </div>
+            <div class="table-responsive data-preview">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for col in columns %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview_data %}
+                        <tr>
+                            {% for col in columns %}
+                            <td>{{ row.get(col, 'N/A') }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- end .main-content -->
+
+    <!-- INJECT CHART DATA -->
+    <div id="dynamic-charts-data" data-charts='{{ charts | default([]) | tojson | safe }}'></div>
+
+    <script>
+        const dynamicChartsDataEl = document.getElementById('dynamic-charts-data');
+        const dynamicChartsData   = JSON.parse(dynamicChartsDataEl.getAttribute('data-charts') || '[]');
+
+        // Store chart instances for live update
+        window.dynChartInstances = {};
+    </script>
+    <script src="{{ url_for('static', filename='js/chart-theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+</html>

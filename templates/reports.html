@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Reports - Pulse</title>
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+
+    <div class="sidebar">
+
+        <div class="logo">
+            <i class="fa-solid fa-bolt"></i> <span>Pulse</span>
+        </div>
+
+        <ul>
+
+            <li>
+                <a href="/dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/analytics">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/upload">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Data</span>
+                </a>
+            </li>
+
+            <li class="active">
+                <a href="/reports">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+
+        </ul>
+
+    </div>
+
+    <!-- MAIN -->
+
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="search-box">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="text"
+                    placeholder="Search analytics...">
+
+            </div>
+
+            <div class="profile">
+
+                <div class="notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+
+                <div class="user-info">
+                    <img src="/static/images/user_avatar.jpg"
+                        alt="profile">
+                    <div class="details">
+                        <h4>Admin User</h4>
+                        <p>Superadmin</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- HEADING -->
+
+        <div class="heading">
+
+            <div>
+                <h1>Reports Center</h1>
+                <p>Export Analytics & Business Reports</p>
+            </div>
+
+        </div>
+
+        <div class="cards-grid">
+
+            <div class="kpi-card report-card">
+
+                <div class="kpi-icon sales-icon">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+
+                <div class="kpi-details">
+                    <h3>PDF Report</h3>
+                    <p>Download comprehensive Sales Report in PDF format.</p>
+                </div>
+
+                <button class="btn-primary" id="btnExportPdf" style="margin-top: 15px; width: 100%;">
+                    Export PDF
+                </button>
+
+            </div>
+
+            <div class="kpi-card report-card">
+
+                <div class="kpi-icon orders-icon">
+                    <i class="fa-solid fa-file-excel"></i>
+                </div>
+
+                <div class="kpi-details">
+                    <h3>Excel Report</h3>
+                    <p>Download detailed Excel Analytics with raw data.</p>
+                </div>
+
+                <button class="btn-primary" id="btnExportExcel" style="margin-top: 15px; width: 100%;">
+                    Export Excel
+                </button>
+
+            </div>
+
+            <div class="kpi-card report-card">
+
+                <div class="kpi-icon profit-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+
+                <div class="kpi-details">
+                    <h3>Prediction Report</h3>
+                    <p>Generate Machine Learning Forecast Analysis Report.</p>
+                </div>
+
+                <button class="btn-primary" id="btnGenerateForecast" style="margin-top: 15px; width: 100%;">
+                    Generate
+                </button>
+
+            </div>
+
+            <div class="kpi-card report-card">
+
+                <div class="kpi-icon discount-icon">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+
+                <div class="kpi-details">
+                    <h3>Dataset Report</h3>
+                    <p>View Spark Dataset Summary Statistics.</p>
+                </div>
+
+                <button class="btn-primary" id="btnViewDatasetSummary" style="margin-top: 15px; width: 100%;">
+                    View
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- DATASET SUMMARY MODAL -->
+    <div id="datasetSummaryModal" class="dataset-modal">
+        <div class="dataset-card">
+            <div class="dataset-card-header">
+                <h3><i class="fa-solid fa-database"></i> Spark Dataset Summary Statistics</h3>
+                <button class="close-btn" id="closeDatasetModal">&times;</button>
+            </div>
+            <div class="dataset-card-body">
+                <div id="datasetLoading" class="spinner-container">
+                    <div class="spinner"></div>
+                    <p>Computing summary statistics using Spark Session...</p>
+                </div>
+                <div id="datasetContent" style="display: none;">
+                    <div class="dataset-meta-grid">
+                        <div class="dataset-meta-item">
+                            <i class="fa-solid fa-list-ol"></i>
+                            <div>
+                                <h4>Total Record Count</h4>
+                                <p id="datasetTotalRows">-</p>
+                            </div>
+                        </div>
+                        <div class="dataset-meta-item">
+                            <i class="fa-solid fa-columns"></i>
+                            <div>
+                                <h4>Total Columns</h4>
+                                <p id="datasetTotalCols">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dataset-tabs">
+                        <button class="dataset-tab-btn active" data-tab="tabDescriptive">Descriptive Statistics</button>
+                        <button class="dataset-tab-btn" data-tab="tabSchema">Schema Details</button>
+                    </div>
+                    
+                    <div id="tabDescriptive" class="dataset-tab-content active">
+                        <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Column Name</th>
+                                        <th>Count</th>
+                                        <th>Mean</th>
+                                        <th>Std Dev</th>
+                                        <th>Min</th>
+                                        <th>Max</th>
+                                        <th>Nulls</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableDescriptiveBody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="tabSchema" class="dataset-tab-content">
+                        <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Column Name</th>
+                                        <th>Spark SQL Data Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableSchemaBody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dataset-card-footer">
+                <button class="btn-secondary" id="closeDatasetModalBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chart-theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+
+</html>

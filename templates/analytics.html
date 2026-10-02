@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Advanced Analytics - Pulse</title>
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+
+    <div class="sidebar">
+
+        <div class="logo">
+            <i class="fa-solid fa-bolt"></i> <span>Pulse</span>
+        </div>
+
+        <ul>
+
+            <li>
+                <a href="/dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li class="active">
+                <a href="/analytics">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/upload">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Data</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/reports">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+
+        </ul>
+
+    </div>
+
+    <!-- MAIN -->
+
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="search-box">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="text"
+                    placeholder="Search analytics...">
+
+            </div>
+
+            <div class="profile">
+
+                <div class="notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+
+                <div class="user-info">
+                    <img src="/static/images/user_avatar.jpg"
+                        alt="profile">
+                    <div class="details">
+                        <h4>Admin User</h4>
+                        <p>Superadmin</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- HEADING -->
+
+        <div class="heading">
+
+            <div>
+                <h1>Advanced Analytics</h1>
+                <p>Machine Learning & Spark Processing Insights</p>
+            </div>
+
+        </div>
+
+        <div class="analytics-grid">
+
+            <div class="chart-card">
+
+                <div class="card-header">
+                    <h2>Monthly Revenue Forecast</h2>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="lineChart"></canvas>
+                </div>
+
+            </div>
+
+            <div class="chart-card">
+
+                <div class="card-header">
+                    <h2>Traffic Sources</h2>
+                </div>
+
+                <div class="chart-container pie-container">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="cards-grid">
+
+            <div class="kpi-card system-card">
+                <div class="kpi-icon sales-icon">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <div class="kpi-details">
+                    <h3>Prediction Accuracy</h3>
+                    <h2>{{ prediction_accuracy }}</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> ML Model Optimized</p>
+                </div>
+            </div>
+
+            <div class="kpi-card system-card">
+                <div class="kpi-icon orders-icon">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div class="kpi-details">
+                    <h3>Processing Speed</h3>
+                    <h2>2.5s</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> Spark Runtime</p>
+                </div>
+            </div>
+
+            <div class="kpi-card system-card">
+                <div class="kpi-icon profit-icon">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div class="kpi-details">
+                    <h3>Dataset Health</h3>
+                    <h2>Excellent</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> Clean Dataset</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="forecast-data" 
+         data-historical-labels='{{ historical_labels | default("[]") | tojson | safe }}'
+         data-historical-values='{{ historical_values | default("[]") | tojson | safe }}'
+         data-forecast-labels='{{ forecast_labels | default("[]") | tojson | safe }}'
+         data-forecast-values='{{ forecast_values | default("[]") | tojson | safe }}'>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chart-theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+
+</html>

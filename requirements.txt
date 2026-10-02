@@ -1,0 +1,8 @@
+flask
+pyspark
+pandas
+matplotlib
+scikit-learn
+openpyxl
+joblib
+reportlab

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Upload Dataset - Pulse</title>
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        #loader { display: none; margin-top: 20px; }
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.1);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px auto;
+        }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+        .upload-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-main);
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+        .upload-zone-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        .file-name-preview {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--success-light); color: var(--success);
+            font-size: 13px; font-weight: 600;
+            padding: 6px 14px; border-radius: 20px;
+            margin-top: 10px;
+            display: none;
+        }
+        .accepted-formats {
+            font-size: 12px; color: var(--text-muted);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+
+    <div class="sidebar">
+
+        <div class="logo">
+            <i class="fa-solid fa-bolt"></i> <span>Pulse</span>
+        </div>
+
+        <ul>
+
+            <li>
+                <a href="/dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/analytics">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+
+            <li class="active">
+                <a href="/upload">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Data</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/reports">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+
+        </ul>
+
+    </div>
+
+    <!-- MAIN -->
+
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="search-box">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="text"
+                    placeholder="Search analytics...">
+
+            </div>
+
+            <div class="profile">
+
+                <div class="notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+
+                <div class="user-info">
+                    <img src="/static/images/user_avatar.jpg"
+                        alt="profile">
+                    <div class="details">
+                        <h4>Admin User</h4>
+                        <p>Superadmin</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- HEADING -->
+
+        <div class="heading">
+
+            <div>
+                <h1>Upload Dataset</h1>
+                <p>Upload CSV Files for Spark Analytics Processing</p>
+            </div>
+
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div style="background:#fee2e2;color:#b91c1c;padding:14px 18px;border-radius:10px;margin-bottom:20px;max-width:600px;margin-left:auto;margin-right:auto;">
+              {% for message in messages %}{{ message }}{% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <div class="chart-card" style="max-width: 620px; margin: 0 auto; text-align: center; padding: 40px;">
+
+            <div class="upload-zone-icon">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+
+            <h2 style="margin-bottom: 8px;">Upload Any CSV Dataset</h2>
+            <p style="color: #64748b; margin-bottom: 24px;">
+                The dynamic dashboard will <strong>automatically adapt</strong> to your dataset — any columns, any domain.
+            </p>
+
+            <form id="uploadForm" method="POST" enctype="multipart/form-data" onsubmit="return handleSubmit()">
+
+                <!-- Drag & Drop Zone -->
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-zone-icon" style="font-size:36px;margin-bottom:10px;">
+                        <i class="fa-solid fa-file-csv"></i>
+                    </div>
+                    <p style="font-weight:600;color:var(--text-main);margin-bottom:4px;">Click to browse or drag &amp; drop</p>
+                    <p class="accepted-formats">Accepted format: <strong>.csv</strong> &nbsp;|&nbsp; Any size, any columns</p>
+                    <div class="file-name-preview" id="fileNamePreview">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span id="fileNameText">file.csv</span>
+                    </div>
+                    <input type="file" name="file" id="fileInput" required accept=".csv">
+                </div>
+
+                <button class="btn-primary" id="submitBtn" type="submit" style="width:100%;padding:14px;font-size:15px;">
+                    <i class="fa-solid fa-bolt"></i> Analyze with Spark
+                </button>
+
+                <div id="loader">
+                    <div class="spinner"></div>
+                    <p style="color:var(--primary);font-weight:500;margin-top:8px;">Analyzing dataset with PySpark... Please wait.</p>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <script>
+        // File input change — show file name preview
+        const fileInput = document.getElementById('fileInput');
+        const fileNamePreview = document.getElementById('fileNamePreview');
+        const fileNameText = document.getElementById('fileNameText');
+        const uploadZone = document.getElementById('uploadZone');
+
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                fileNameText.innerText = this.files[0].name;
+                fileNamePreview.style.display = 'inline-flex';
+            }
+        });
+
+        // Drag & Drop
+        uploadZone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        });
+        uploadZone.addEventListener('dragleave', function () {
+            this.classList.remove('drag-over');
+        });
+        uploadZone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files[0]) {
+                const f = dt.files[0];
+                if (!f.name.endsWith('.csv')) {
+                    alert('Please drop a CSV file.');
+                    return;
+                }
+                // Assign to the input
+                const dT = new DataTransfer();
+                dT.items.add(f);
+                fileInput.files = dT.files;
+                fileNameText.innerText = f.name;
+                fileNamePreview.style.display = 'inline-flex';
+            }
+        });
+
+        function handleSubmit() {
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('Please select a CSV file first.');
+                return false;
+            }
+            const fname = fileInput.files[0].name;
+            if (!fname.toLowerCase().endsWith('.csv')) {
+                alert('Only .csv files are accepted.');
+                return false;
+            }
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+            return true;
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/chart-theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Dashboard - Pulse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-bolt"></i> <span>Pulse</span>
+        </div>
+        <ul>
+            <li class="active"><a href="/dashboard"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+            <li><a href="/analytics"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></a></li>
+            <li><a href="/upload"><i class="fa-solid fa-cloud-arrow-up"></i><span>Upload Data</span></a></li>
+            <li><a href="/reports"><i class="fa-solid fa-file-invoice"></i><span>Reports</span></a></li>
+            <li><a href="/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search analytics...">
+            </div>
+            <div class="profile">
+                <div class="notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="user-info">
+                    <img src="/static/images/user_avatar.jpg" alt="profile">
+                    <div class="details">
+                        <h4>Admin User</h4>
+                        <p>Superadmin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HEADING -->
+        <div class="heading">
+            <div>
+                <h1>E-commerce Overview</h1>
+                <p>Interactive Analytics for <strong>sales.csv</strong></p>
+            </div>
+            <div class="dashboard-filters">
+                <div class="filter-group">
+                    <label for="yearFilter">Year</label>
+                    <select id="yearFilter">
+                        <option value="All">All Years</option>
+                        {% for y in years %}
+                        <option value="{{ y }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="regionFilter">Region</label>
+                    <select id="regionFilter">
+                        <option value="All">All Regions</option>
+                        <option value="Central">Central</option>
+                        <option value="East">East</option>
+                        <option value="South">South</option>
+                        <option value="West">West</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="categoryFilter">Category</label>
+                    <select id="categoryFilter">
+                        <option value="All">All Categories</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Office Supplies">Office Supplies</option>
+                        <option value="Technology">Technology</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI CARDS -->
+        <div class="cards-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon sales-icon"><i class="fa-solid fa-wallet"></i></div>
+                <div class="kpi-details">
+                    <h3>Total Sales</h3>
+                    <h2 id="totalSalesVal">{{ total_sales }}</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> Live Spark metric</p>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon orders-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                <div class="kpi-details">
+                    <h3>Total Orders</h3>
+                    <h2 id="totalOrdersVal">{{ total_orders }}</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> Live Spark metric</p>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon profit-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="kpi-details">
+                    <h3>Total Profit</h3>
+                    <h2 id="totalProfitVal">{{ total_profit }}</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> Live Spark metric</p>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon discount-icon"><i class="fa-solid fa-tags"></i></div>
+                <div class="kpi-details">
+                    <h3>Avg Discount</h3>
+                    <h2 id="avgDiscountVal">{{ avg_discount }}%</h2>
+                    <p class="trend up"><i class="fa-solid fa-check"></i> Live Spark metric</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHART GRID ROW 1 -->
+        <div class="analytics-grid">
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>Sales Trend</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>Sales by Region</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="regionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHART GRID ROW 2 -->
+        <div class="analytics-grid-3">
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>Category Distribution</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container pie-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="card-header">
+                    <h2>Customer Segments</h2>
+                    <div class="card-actions"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                <div class="chart-container pie-container">
+                    <canvas id="segmentChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card system-card">
+                <div class="card-header">
+                    <h2>System Status</h2>
+                </div>
+                <div class="system-status">
+                    <div class="status-item">
+                        <div class="status-icon green"><i class="fa-solid fa-check"></i></div>
+                        <div class="status-text">
+                            <h4>PySpark Engine</h4>
+                            <p>Active and processing</p>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-icon green"><i class="fa-solid fa-check"></i></div>
+                        <div class="status-text">
+                            <h4>Data Pipeline</h4>
+                            <p>sales.csv loaded successfully</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="ml-prediction">
+                    <h4>ML Forecast (Next Month)</h4>
+                    <h2><span id="mlForecastVal">{{ forecast_value }}</span> <span id="mlForecastTrend"
+                            class="trend {{ trend_class }}"><i class="fa-solid fa-arrow-trend-{{ trend_class }}"></i> {{
+                            forecast_trend }}</span></h2>
+                    <p
+                        style="font-size: 12px; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                        <i class="fa-solid fa-bullseye"></i> Accuracy: <strong id="mlForecastAccuracy"
+                            style="color: var(--primary);">{{ forecast_accuracy }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP PRODUCTS TABLE -->
+        <div class="table-card">
+            <div class="table-header">
+                <h2>Top Performing Products</h2>
+                <button class="btn-outline text-sm">View All</button>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Total Sales</th>
+                            <th>Total Profit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topProductsBody">
+                        {% for product in top_products %}
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    <div class="product-icon"><i class="fa-solid fa-box"></i></div>
+                                    <span>{{ product['Product Name'] }}</span>
+                                </div>
+                            </td>
+                            <td class="font-medium">{{ product['total_sales'] }}</td>
+                            <td class="{{ product['profit_class'] }} font-medium">{{ product['total_profit'] }}</td>
+                            <td><span class="badge-success">In Stock</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="chart-data" data-regions-labels='{{ regions | default("[]") | tojson | safe }}'
+        data-regions-values='{{ region_values | default("[]") | tojson | safe }}'
+        data-categories-labels='{{ categories | default("[]") | tojson | safe }}'
+        data-categories-values='{{ category_values | default("[]") | tojson | safe }}'
+        data-months-labels='{{ months | default("[]") | tojson | safe }}'
+        data-months-values='{{ month_values | default("[]") | tojson | safe }}'
+        data-segments-labels='{{ segments | default("[]") | tojson | safe }}'
+        data-segments-values='{{ segment_values | default("[]") | tojson | safe }}'>
+    </div>
+
+    <script>
+        const chartDataEl = document.getElementById('chart-data');
+        const chartData = {
+            regions: {
+                labels: JSON.parse(chartDataEl.getAttribute('data-regions-labels') || '[]'),
+                values: JSON.parse(chartDataEl.getAttribute('data-regions-values') || '[]')
+            },
+            categories: {
+                labels: JSON.parse(chartDataEl.getAttribute('data-categories-labels') || '[]'),
+                values: JSON.parse(chartDataEl.getAttribute('data-categories-values') || '[]')
+            },
+            months: {
+                labels: JSON.parse(chartDataEl.getAttribute('data-months-labels') || '[]'),
+                values: JSON.parse(chartDataEl.getAttribute('data-months-values') || '[]')
+            },
+            segments: {
+                labels: JSON.parse(chartDataEl.getAttribute('data-segments-labels') || '[]'),
+                values: JSON.parse(chartDataEl.getAttribute('data-segments-values') || '[]')
+            }
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/chart-theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+
+</html>
